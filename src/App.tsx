@@ -15,11 +15,10 @@ for (let i = 0; i < settings.numRows; i++) {
 }
 
 const Row: React.FC<{ id: number, i: number, yScroll: number }> = ({ id, i, yScroll }) => {
-  // const yPos = rowHeight
-
   return (
     <div className="row" style={{
       top: yScroll + (i * settings.rowHeight)
+      // translate: `0 ${yScroll + (i * settings.rowHeight)}px 0`
     }}>
       <p>{id}</p>
     </div>
