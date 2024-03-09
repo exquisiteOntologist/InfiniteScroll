@@ -5,7 +5,7 @@ import './App.css'
 const settings = {
   rowHeight: 20,
   numRows: 10000,
-  numVisibleRows: 100
+  numVisibleRows: 300
 }
 
 const rows: { id: number }[] = []
