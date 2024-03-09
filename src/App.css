@@ -1,0 +1,23 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.rowContainer {
+  position: relative;
+}
+
+.row {
+  position: absolute;
+  top: auto;
+  right: 0;
+  bottom: auto;
+  left: 0;
+  height: 20px;
+}
+
+.row p {
+  margin: 0;
+}
