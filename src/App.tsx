@@ -14,6 +14,8 @@ for (let i = 0; i < settings.numRows; i++) {
   rows.push({ id: i })
 }
 
+const reverseOffset = Math.ceil(settings.numVisibleRows / 2)
+
 const Row: React.FC<{ id: number, i: number, yScroll: number }> = ({ id, i, yScroll }) => {
   return (
     <div className="row" style={{
@@ -31,17 +33,20 @@ function App() {
   const [yScroll, setYScroll] = useState(0)
   
   React.useEffect(() => {
-    addEventListener('scroll', () => {
-      setYScroll(scrollY)
-    })
+    addEventListener('scroll', () => setYScroll(scrollY))
   })
 
   const iRowInView = Math.ceil(yScroll / settings.rowHeight)
 
+  console.log('row in view', iRowInView)
+
   const rowNodes = []
 
-  for (let i = 0; i < settings.numVisibleRows; i++) {
-    rowNodes.push(<Row key={i} {...rows[iRowInView + i]} i={i} yScroll={yScroll} />)
+  for (let i = -reverseOffset; i < settings.numVisibleRows; i++) {
+    const indexWithOffsets = iRowInView + i
+    const row = rows[indexWithOffsets]
+    if (!row) continue
+    rowNodes.push(<Row key={i} {...rows[indexWithOffsets]} i={i} yScroll={yScroll} />)
   }
 
   return (
