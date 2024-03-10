@@ -23,7 +23,7 @@ for (let i = 0; i < settings.numRows; i++) {
 const Row: React.FC<{ id: number, i: number, top: number, active: boolean }> = ({ id, i, top, active }) => { 
   return (
     <div className="row" style={{ top: top }} data-active={active ? 'a' : 'b'}>
-      <p>{i}:{id}{active ? '(A)' : '(B)'}</p>
+      <p>{id} ({i}/{settings.numVisibleRows - 1}){active ? '(A)' : '(B)'}</p>
     </div>
   )
 }
@@ -56,7 +56,7 @@ function App() {
     addEventListener('resize', () => setVScreen(visualViewport.height))
   })
 
-  /** Has the user scrolled so far at once (e.g. end) that the just-out-of-view rendered rows were not these rows now meant to be displayed */
+  /** Has the user scrolled so far at once (e.g. end) that the just-out-of-view rendered rows were not these rows now meant to be displayed? */
   const bigJump = priorYScroll - yScroll > visualViewport.height * 2 || yScroll - priorYScroll > visualViewport.height * 2
 
   const iRowInView = Math.floor(yScroll / settings.rowHeight)
@@ -102,9 +102,9 @@ function App() {
 
   return (
     <>
-      <div className="rowContainer" style={{ height: totalHeight }}>
+      <main className="rowContainer" style={{ height: totalHeight }}>
         { rowNodes }
-      </div>
+      </main>
     </>
   )
 }
