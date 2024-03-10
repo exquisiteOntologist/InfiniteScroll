@@ -8,13 +8,12 @@ const settings = {
   numVisibleRows: 300
 }
 
-/** mod because simple '%' makes negative n negative value */
-function mod(n: number, m: number): number {
-  return ((n % m) + m) % m;
+interface DataRow {
+  id: number
 }
 
 /** The "actual" rows */
-const rowsData: { id: number }[] = []
+const rowsData: DataRow[] = []
 
 for (let i = 0; i < settings.numRows; i++) {
   rowsData.push({ id: i })
@@ -30,12 +29,19 @@ const Row: React.FC<{ id: number, i: number, top: number, active: boolean }> = (
 
 const totalHeight = settings.rowHeight * settings.numRows
 
+interface VisibleRow {
+  id: number
+  rowId: number
+  top: number | null
+  active: boolean
+}
+
 /** Create an array representing the rendered rows, not the data source's rows */
-const createVisibleRows = () => {
+const createVisibleRows = (): VisibleRow[] => {
   const rows = []
 
   for (let i = 0; i < settings.numVisibleRows; i++) {
-    rows.push({ id: i, rowId: 0, top: 0, active: false })
+    rows.push({ id: i, rowId: 0, top: null /* settings.rowHeight * i */, active: false })
   }
 
   return rows
@@ -46,7 +52,7 @@ function App() {
   const [yScroll, setYScroll] = useState(0)
   const [vScreen, setVScreen] = useState(visualViewport.height)
   /** Visible rows, the rendered rows, to roll over the actual rows */
-  const [vRows, setVRows] = useState(createVisibleRows())
+  const [vRows, setVRows] = useState<VisibleRow[]>(createVisibleRows())
   
   React.useEffect(() => {
     addEventListener('scroll', () => {
@@ -76,12 +82,14 @@ function App() {
   console.log('y scroll:', yScroll, 'iRowInView', iRowInView, 'centerRow:', centerRow, rowsData[centerRow].id)
   console.log('num rows on screen:', numRowsOnScreen, 'num visible:', settings.numVisibleRows)
 
-  // NOTE: There is a serious bug where first row (id: 0) is not rendered or is not considered active
-
   for (let i = 0; i < vRows.length; i++) {   
     const vRow = vRows[(iRowInView + i) % vRows.length]
-    const row = rowsData[Math.floor((centerRow - (vRows.length / 2)) + i)]
-    if (!row) continue
+    const rowDataIndex = Math.floor((centerRow - (vRows.length / 2)) + i)
+    const row = rowsData[rowDataIndex]
+    if (!row) {
+      vRow.top = null
+      continue
+    }
     const active = activeIds.includes(row.id)
     if (!yScroll || !active || bigJump) {
       vRow.top = row.id * settings.rowHeight
@@ -98,7 +106,7 @@ function App() {
 
   // console.log('vRows', vRows)
 
-  const rowNodes = vRows.map((vRow, i) => (vRow.top > 0 || (i === 0 && vRow.rowId === 0)) && <Row key={i} i={i} id={vRow.rowId} top={vRow.top} active={vRow.active} />)
+  const rowNodes = vRows.map((vRow, i) => vRow.top !== null && <Row key={i} i={i} id={vRow.rowId} top={vRow.top} active={vRow.active} />)
 
   return (
     <>
