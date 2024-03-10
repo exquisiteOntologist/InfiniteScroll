@@ -19,10 +19,10 @@ for (let i = 0; i < settings.numRows; i++) {
   rowsData.push({ id: i })
 }
 
-const Row: React.FC<{ id: number, i: number, top: number, active: boolean }> = ({ id, i, top, active }) => { 
+const Row: React.FC<{ id: number, i: number, top: number, onScreen: boolean }> = ({ id, i, top, onScreen }) => { 
   return (
-    <div className="row" style={{ top: top }} data-active={active ? 'a' : 'b'}>
-      <p>{id} ({i}/{settings.numVisibleRows - 1}){active ? '(A)' : '(B)'}</p>
+    <div className="row" style={{ top: top }} data-active={onScreen ? 'a' : 'b'}>
+      <p>{id} ({i}/{settings.numVisibleRows - 1}){onScreen ? '(A)' : '(B)'}</p>
     </div>
   )
 }
@@ -32,8 +32,9 @@ const totalHeight = settings.rowHeight * settings.numRows
 interface VisibleRow {
   id: number
   rowId: number
-  top: number | null
-  active: boolean
+  top: number
+  onScreen: boolean
+  offPage: boolean
 }
 
 /** Create an array representing the rendered rows, not the data source's rows */
@@ -41,7 +42,7 @@ const createVisibleRows = (): VisibleRow[] => {
   const rows = []
 
   for (let i = 0; i < settings.numVisibleRows; i++) {
-    rows.push({ id: i, rowId: 0, top: null /* settings.rowHeight * i */, active: false })
+    rows.push({ id: i, rowId: 0, top: 0, onScreen: false, offPage: false })
   }
 
   return rows
@@ -86,27 +87,25 @@ function App() {
     const vRow = vRows[(iRowInView + i) % vRows.length]
     const rowDataIndex = Math.floor((centerRow - (vRows.length / 2)) + i)
     const row = rowsData[rowDataIndex]
-    if (!row) {
-      vRow.top = null
-      continue
-    }
+    vRow.offPage = !row
+    if (vRow.offPage) continue
     const active = activeIds.includes(row.id)
     if (!yScroll || !active || bigJump) {
       vRow.top = row.id * settings.rowHeight
       vRow.rowId = row.id
     }
 
-    vRow.active = active
+    vRow.onScreen = active
   }
   console.log('mouse', vScreen, yScroll)
   console.log('big jump?', bigJump)
-  console.log('active & non', vRows.filter(vR => vR.active).length, 'VS', vRows.filter(vR => !vR.active).length)
+  console.log('active & non', vRows.filter(vR => vR.onScreen).length, 'VS', vRows.filter(vR => !vR.onScreen).length)
   console.log('y first active', document.querySelectorAll('[data-active=a]')[1])
   console.log('y first inactive', document.querySelector('[data-active=b]'))
 
   // console.log('vRows', vRows)
 
-  const rowNodes = vRows.map((vRow, i) => vRow.top !== null && <Row key={i} i={i} id={vRow.rowId} top={vRow.top} active={vRow.active} />)
+  const rowNodes = vRows.map((vRow, i) => !vRow.offPage && <Row key={i} i={i} id={vRow.rowId} top={vRow.top} onScreen={vRow.onScreen} />)
 
   return (
     <>
