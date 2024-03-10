@@ -42,15 +42,22 @@ const createVisibleRows = () => {
 }
 
 function App() {
+  const [priorYScroll, setPriorYScroll] = useState(0)
   const [yScroll, setYScroll] = useState(0)
   const [vScreen, setVScreen] = useState(visualViewport.height)
   /** Visible rows, the rendered rows, to roll over the actual rows */
   const [vRows, setVRows] = useState(createVisibleRows())
   
   React.useEffect(() => {
-    addEventListener('scroll', () => setYScroll(scrollY))
+    addEventListener('scroll', () => {
+      setPriorYScroll(yScroll)
+      setYScroll(scrollY) // `scrollY` from global
+    })
     addEventListener('resize', () => setVScreen(visualViewport.height))
   })
+
+  /** Has the user scrolled so far at once (e.g. end) that the just-out-of-view rendered rows were not these rows now meant to be displayed */
+  const bigJump = priorYScroll - yScroll > visualViewport.height * 2 || yScroll - priorYScroll > visualViewport.height * 2
 
   const iRowInView = Math.floor(yScroll / settings.rowHeight)
 
@@ -76,7 +83,7 @@ function App() {
     const row = rowsData[Math.floor((centerRow - (vRows.length / 2)) + i)]
     if (!row) continue
     const active = activeIds.includes(row.id)
-    if (!yScroll || !active) {
+    if (!yScroll || !active || bigJump) {
       vRow.top = row.id * settings.rowHeight
       vRow.rowId = row.id
     }
@@ -84,13 +91,14 @@ function App() {
     vRow.active = active
   }
   console.log('mouse', vScreen, yScroll)
+  console.log('big jump?', bigJump)
   console.log('active & non', vRows.filter(vR => vR.active).length, 'VS', vRows.filter(vR => !vR.active).length)
   console.log('y first active', document.querySelectorAll('[data-active=a]')[1])
   console.log('y first inactive', document.querySelector('[data-active=b]'))
 
   // console.log('vRows', vRows)
 
-  const rowNodes = vRows.map((vRow, i) => (vRow.top > 0 || i === 0) && <Row key={i} i={i} id={vRow.rowId} top={vRow.top} active={vRow.active} />)
+  const rowNodes = vRows.map((vRow, i) => (vRow.top > 0 || (i === 0 && vRow.rowId === 0)) && <Row key={i} i={i} id={vRow.rowId} top={vRow.top} active={vRow.active} />)
 
   return (
     <>
